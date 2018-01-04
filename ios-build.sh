@@ -10,7 +10,7 @@ TOMMATH_VERSION="0.42.0"
 DEVELOPER="/Applications/Xcode.app/Contents/Developer"
 
 SDK_VERSION="10.2"
-MIN_VERSION="10.0"
+MIN_VERSION="10.2"
 
 IPHONEOS_PLATFORM="${DEVELOPER}/Platforms/iPhoneOS.platform"
 IPHONEOS_SDK="${IPHONEOS_PLATFORM}/Developer/SDKs/iPhoneOS${SDK_VERSION}.sdk"
@@ -64,22 +64,23 @@ buildMath()
 
   #pushd .
   #cd "libtommath-${TOMMATH_VERSION}"
-  make -j5 | tee "/tmp/libtommath-${TOMMATH_VERSION}-${ARCH}.build-log"
+  make | tee "/tmp/libtommath-${TOMMATH_VERSION}-${ARCH}.build-log"
   make INSTALL_USER=`id -un` INSTALL_GROUP=`id -gn` "LIBPATH=/tmp/libtommath-${TOMMATH_VERSION}-${ARCH}/lib" "INCPATH=/tmp/libtommath-${TOMMATH_VERSION}-${ARCH}/include" "DATAPATH=/tmp/libtommath-${TOMMATH_VERSION}-${ARCH}/docs" NODOCS=1 install | tee "/tmp/libtommath-${TOMMATH_VERSION}-${ARCH}.install-log"
   #popd
   #rm -rf "libtommath-${TOMMATH_VERSION}"
 }
 
-buildMath "arm64" "${IPHONEOS_GCC}" "${IPHONEOS_SDK}" ""
+
+#buildMath "arm64" "${IPHONEOS_GCC}" "${IPHONEOS_SDK}" ""
 #buildMath "i386" "${IPHONESIMULATOR_GCC}" "${IPHONESIMULATOR_SDK}" ""
 #buildMath "x86_64" "${IPHONESIMULATOR_GCC}" "${IPHONESIMULATOR_SDK}" ""
 
+make -j5 CC="$(xcrun --sdk iphoneos --find clang) -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -arch armv7 -arch armv7s -arch arm64"
+
 mkdir build
 
-xcrun -sdk iphoneos lipo \
-  "/tmp/libtommath-${TOMMATH_VERSION}-arm64/lib/libtommath.a" \
-  -create -output build/libtommath.a
-# "/tmp/libtommath-${TOMMATH_VERSION}-i386/lib/libtommath.a" \
- # "/tmp/libtommath-${TOMMATH_VERSION}-x86_64/lib/libtommath.a" \
-
-xcrun -sdk iphoneos ranlib "build/libtommath.a"
+xcrun -sdk iphoneos lipo "libtommath.a" -create -output build/libtommath.a;
+# xcrun -sdk iphoneos lipo \
+#  "/tmp/libtommath-${TOMMATH_VERSION}-arm64/lib/libtommath.a" \
+# -create -output build/libtommath.a
+# xcrun -sdk iphoneos ranlib "build/libtommath.a"
